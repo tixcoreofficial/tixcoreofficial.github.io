@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Review for TixCore</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f3f3;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+    }
+    .review-box {
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 500px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 100%;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    .stars {
+      display: flex;
+      gap: 10px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .star {
+      font-size: 30px;
+      color: #ccc;
+      transition: color 0.2s;
+    }
+    .star.active {
+      color: gold;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    button {
+      padding: 12px;
+      background-color: #28a745;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="review-box">
+    <h2>Leave a Review for TixCore</h2>
+    <div class="stars" id="starContainer"></div>
+    <textarea id="reviewText" placeholder="Write your review here..."></textarea>
+    <input type="email" id="emailInput" placeholder="Your email (optional)" />
+    <button onclick="submitReview()">Submit Review</button>
+  </div>
+
+  <script>
+    const proxyURL = 'https://ditt-domene.no/feedbackproxy.php'; // bytt ut med din PHP-server
+
+    let rating = 0;
+
+    const starContainer = document.getElementById('starContainer');
+    for (let i = 1; i <= 5; i++) {
+      const star = document.createElement('span');
+      star.innerHTML = '★';
+      star.classList.add('star');
+      star.dataset.value = i;
+      star.onclick = function () {
+        rating = i;
+        updateStars();
+      };
+      starContainer.appendChild(star);
+    }
+
+    function updateStars() {
+      document.querySelectorAll('.star').forEach(star => {
+        star.classList.toggle('active', parseInt(star.dataset.value) <= rating);
+      });
+    }
+
+    function submitReview() {
+      const reviewText = document.getElementById('reviewText').value.trim();
+      const email = document.getElementById('emailInput').value.trim();
+
+      if (!rating || !reviewText) {
+        alert("Please add a rating and a review.");
+        return;
+      }
+
+      fetch(proxyURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          rating,
+          review: reviewText,
+          email
+        })
+      }).then(res => res.json()).then(data => {
+        if (data.success) {
+          alert("Review submitted!");
+          rating = 0;
+          document.getElementById('reviewText').value = '';
+          document.getElementById('emailInput').value = '';
+          updateStars();
+        } else {
+          alert("Failed to send review: " + (data.error || 'Unknown error'));
+        }
+      }).catch(() => {
+        alert("Network error while sending the review.");
+      });
+    }
+  </script>
+</body>
+</html>
